@@ -2,7 +2,6 @@ import uuid
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException
-from requests import Session
 from sqlmodel import col, delete, func, select
 
 from app import crud
@@ -10,8 +9,6 @@ from app.api.deps import (
     CurrentUser,
     SessionDep,
     get_current_active_superuser,
-    get_current_user,
-    get_db,
 )
 from app.core.config import settings
 from app.core.security import get_password_hash, verify_password
@@ -23,12 +20,10 @@ from app.model.user import (
     UserRegister,
     UsersPublic,
     UserUpdate,
-    UserUpdateMe, SelectTeacherRequest, SelectLanguageRequest,
+    UserUpdateMe,
 )
-from app.models import (
-    Item,
-    Message,
-)
+from app.models import Message
+from app.model.pet import Pet
 from app.utils import generate_new_account_email, send_email
 
 router = APIRouter(prefix="/users", tags=["users"])
@@ -224,31 +219,12 @@ def delete_user(
         raise HTTPException(
             status_code=403, detail="Super users are not allowed to delete themselves"
         )
-    statement = delete(Item).where(col(Item.owner_id) == user_id)
+    statement = delete(Pet).where(col(Pet.user_id) == user_id)
     session.exec(statement)  # type: ignore
     session.delete(user)
     session.commit()
     return Message(message="User deleted successfully")
 
 
-@router.patch("/me/teacher", response_model=UserPublic)
-def select_teacher(
-    req: SelectTeacherRequest,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    current_user.teacher = req.teacher
-    db.commit()
-    db.refresh(current_user)
-    return current_user
 
-@router.patch("/me/purpose_language", response_model=UserPublic)
-def select_teacher(
-    req: SelectLanguageRequest,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    current_user.purpose_language = req.language
-    db.commit()
-    db.refresh(current_user)
-    return current_user
+

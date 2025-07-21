@@ -24,7 +24,7 @@ POSTGRES_SERVER = os.getenv("POSTGRES_SERVER", "localhost")
 POSTGRES_PORT = os.getenv("POSTGRES_PORT", 5432)
 POSTGRES_USER = os.getenv("POSTGRES_USER", "postgres")
 POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD", "postgres")
-POSTGRES_DB = os.getenv("POSTGRES_DB", "gigflow")
+POSTGRES_DB = os.getenv("POSTGRES_DB", "dongopet")
 SECRET_KEY = os.getenv("SECRET_KEY", "")
 FIRST_SUPERUSER_PASSWORD = os.getenv("FIRST_SUPERUSER_PASSWORD", "")
 

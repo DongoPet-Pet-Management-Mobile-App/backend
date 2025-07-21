@@ -21,9 +21,14 @@ fileConfig(config.config_file_name)
 # target_metadata = mymodel.Base.metadata
 # target_metadata = None
 
-from app.models import SQLModel  # noqa
 from app.core.config import settings # noqa
 
+# Import your models here so Alembic can detect them
+from app.models import * # This will import all models
+
+# Make sure SQLModel metadata is available
+from sqlmodel import SQLModel
+from app import models  # This ensures your models are imported
 target_metadata = SQLModel.metadata
 
 # other values from the config, defined by the needs of env.py,

@@ -9,37 +9,27 @@ from typing_extensions import Optional, List
 
 class User(SQLModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, index=True)
-    is_active: bool = Field(default=True)
-    is_superuser: bool = Field(default=False)
     name: str = Field(max_length=255)
     email: str = Field(unique=True, index=True, max_length=255)
+    phone_number: str | None = Field(default=None, max_length=20)
+    address: str | None = Field(default=None, max_length=500)
     password: str = Field(min_length=8, max_length=128)
-    native_language: str | None = Field(default=None, max_length=64)
-    purpose_language: str | None = Field(default=None, max_length=256)
-    reason: str | None = Field(default=None, max_length=255)
-    time: int | None = Field(default=None, description="Learning time in minutes")
-    teacher: str | None = Field(default=None, max_length=255)  # teacher id
-    current_lesson: str | None = Field(default=None, max_length=255) # lesson id
+    hashed_password: str = Field(default=None, nullable=True)
+    language: str | None = Field(default=None, max_length=64)
+    notification: bool = Field(default=True)
+    membership: int | None = Field(default=0)
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
-    extra_minute: int | None = Field(default=0)
-    membership: int | None = Field(default=0)
-    hashed_password: str = Field(default=None, nullable=True)
-    items: list["Item"] = Relationship(back_populates="owner")
+    pets: list["Pet"] = Relationship(back_populates="owner")
 
 # Shared properties
 class UserBase(SQLModel):
     email: EmailStr = Field(unique=True, index=True, max_length=255)
-    is_active: bool = True
-    is_superuser: bool = False
     name: Optional[str] = Field(default=None, max_length=255)
-    native_language: Optional[str] = Field(default=None, max_length=64)
-    purpose_language: Optional[str] = Field(default=None, max_length=256)
-    reason: Optional[str] = Field(default=None, max_length=255)
-    time: Optional[int] = Field(default=None, description="Learning time in minutes")
-    teacher: Optional[str] = Field(default=None, max_length=255)
-    current_lesson: Optional[str] = Field(default=None, max_length=255)
-    extra_minute: Optional[int] = Field(default=0)
+    phone_number: Optional[str] = Field(default=None, max_length=20)
+    address: Optional[str] = Field(default=None, max_length=500)
+    language: Optional[str] = Field(default=None, max_length=64)
+    notification: Optional[bool] = Field(default=True)
     membership: Optional[int] = Field(default=0)
 
 # Properties to receive via API on creation
@@ -51,10 +41,10 @@ class UserRegister(SQLModel):
     email: EmailStr = Field(max_length=255)
     password: str = Field(min_length=8, max_length=128)
     name: Optional[str] = Field(default=None, max_length=255)
-    native_language: Optional[str] = Field(default=None, max_length=64)
-    purpose_language: Optional[str] = Field(default=None, max_length=64)
-    reason: Optional[str] = Field(default=None, max_length=255)
-    time: int | None = Field(default=None, description="Learning time in minutes")
+    phone_number: Optional[str] = Field(default=None, max_length=20)
+    address: Optional[str] = Field(default=None, max_length=500)
+    language: Optional[str] = Field(default=None, max_length=64)
+    notification: Optional[bool] = Field(default=True)
 
 # Properties to receive via API on update, all are optional
 class UserUpdate(UserBase):
@@ -64,9 +54,10 @@ class UserUpdate(UserBase):
 class UserUpdateMe(SQLModel):
     name: Optional[str] = Field(default=None, max_length=255)
     email: Optional[EmailStr] = Field(default=None, max_length=255)
-    native_language: Optional[str] = Field(default=None, max_length=64)
-    purpose_language: Optional[str] = Field(default=None, max_length=64)
-    reason: Optional[str] = Field(default=None, max_length=255)
+    phone_number: Optional[str] = Field(default=None, max_length=20)
+    address: Optional[str] = Field(default=None, max_length=500)
+    language: Optional[str] = Field(default=None, max_length=64)
+    notification: Optional[bool] = Field(default=None)
 
 # Properties to return via API, id is always required
 class UserPublic(UserBase):
