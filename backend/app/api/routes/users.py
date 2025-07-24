@@ -226,5 +226,3 @@ def delete_user(
     return Message(message="User deleted successfully")
 
 
-
-

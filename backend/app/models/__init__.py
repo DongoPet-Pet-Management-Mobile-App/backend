@@ -3,8 +3,13 @@ from sqlmodel import SQLModel, Field
 
 from app.model.user import User
 from app.model.pet import Pet
+from app.model.insurance import Insurance
+from app.model.medical_condition import MedicalCondition
+from app.model.medication import Medication
+from app.model.vaccination import Vaccination
+from app.model.allergi import Allergi
 
-__all__ = ["User", "Pet"]
+__all__ = ["User", "Pet", "Insurance", "MedicalCondition", "Medication", "Vaccination", "Allergi"]
 
 class ChatRequest(BaseModel):
     message: str
@@ -29,3 +34,5 @@ class Token(SQLModel):
 class NewPassword(SQLModel):
     token: str
     new_password: str = Field(min_length=8, max_length=40)
+
+

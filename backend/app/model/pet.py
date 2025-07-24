@@ -15,6 +15,7 @@ class PetBase(SQLModel):
     height: float | None = Field(default=None)
     relationship: str | None = Field(default=None, max_length=100)
     avatar: str | None = Field(default=None, max_length=500)
+    chipnumber: str | None = Field(default=None, max_length=50)
 
 
 # Properties to receive on pet creation
@@ -36,6 +37,7 @@ class Pet(PetBase, table=True):
         foreign_key="user.id", nullable=False, ondelete="CASCADE"
     )
     owner: User | None = Relationship(back_populates="pets")
+    insurance: list["Insurance"] = Relationship(back_populates="pet")
 
 
 # Properties to return via API, id is always required

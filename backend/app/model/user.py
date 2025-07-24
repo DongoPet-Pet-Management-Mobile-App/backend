@@ -18,6 +18,7 @@ class User(SQLModel, table=True):
     language: str | None = Field(default=None, max_length=64)
     notification: bool = Field(default=True)
     membership: int | None = Field(default=0)
+    bio: str | None = Field(default=None, max_length=65535)
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
     pets: list["Pet"] = Relationship(back_populates="owner")
@@ -31,6 +32,7 @@ class UserBase(SQLModel):
     language: Optional[str] = Field(default=None, max_length=64)
     notification: Optional[bool] = Field(default=True)
     membership: Optional[int] = Field(default=0)
+    bio: Optional[str] = Field(default=None, max_length=65535)
 
 # Properties to receive via API on creation
 class UserCreate(UserBase):
@@ -58,6 +60,7 @@ class UserUpdateMe(SQLModel):
     address: Optional[str] = Field(default=None, max_length=500)
     language: Optional[str] = Field(default=None, max_length=64)
     notification: Optional[bool] = Field(default=None)
+    bio: Optional[str] = Field(default=None, max_length=65535)
 
 # Properties to return via API, id is always required
 class UserPublic(UserBase):

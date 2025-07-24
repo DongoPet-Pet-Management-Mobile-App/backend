@@ -3,6 +3,7 @@ from typing import Any
 
 from fastapi import APIRouter, HTTPException
 from sqlmodel import func, select
+from pydantic import BaseModel, Field
 
 from app.api.deps import CurrentUser, SessionDep
 from app.model.pet import Pet, PetCreate, PetPublic, PetsPublic, PetUpdate
@@ -108,4 +109,60 @@ def delete_pet(
     session.delete(pet)
     session.commit()
     return Message(message="Pet deleted successfully")
+
+
+class PetBioUpdate(BaseModel):
+    bio: str | None = Field(default=None, max_length=65535)
+
+
+@router.patch("/{id}/bio", response_model=PetPublic)
+def update_pet_bio(
+    *,
+    session: SessionDep,
+    id: uuid.UUID,
+    bio_update: PetBioUpdate,
+) -> Any:
+    """
+    Update a pet's bio.
+    """
+    pet = session.get(Pet, id)
+    if not pet:
+        raise HTTPException(status_code=404, detail="Pet not found")
+    
+    pet.bio = bio_update.bio
+    session.add(pet)
+    session.commit()
+    session.refresh(pet)
+    return pet
+
+
+class PetProfileUpdate(BaseModel):
+    name: str | None = Field(default=None, min_length=1, max_length=255)
+    type: str | None = Field(default=None, max_length=100)
+    breed: str | None = Field(default=None, max_length=255)
+    gender: str | None = Field(default=None, max_length=20)
+    age: int | None = Field(default=None)
+    weight: float | None = Field(default=None)
+
+
+@router.patch("/{id}/profile", response_model=PetPublic)
+def update_pet_profile(
+    *,
+    session: SessionDep,
+    id: uuid.UUID,
+    profile_update: PetProfileUpdate,
+) -> Any:
+    """
+    Update a pet's profile information.
+    """
+    pet = session.get(Pet, id)
+    if not pet:
+        raise HTTPException(status_code=404, detail="Pet not found")
+    
+    update_dict = profile_update.model_dump(exclude_unset=True)
+    pet.sqlmodel_update(update_dict)
+    session.add(pet)
+    session.commit()
+    session.refresh(pet)
+    return pet
 
