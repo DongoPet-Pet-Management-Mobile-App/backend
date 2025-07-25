@@ -11,6 +11,8 @@ from app.models import Message
 from app.model.insurance import Insurance, InsuranceUpdate, InsurancePublic
 from app.model.vaccination import Vaccination, VaccinationCreate, VaccinationPublic
 from app.model.allergi import Allergi, AllergiCreate, AllergiPublic
+from app.model.medical_condition import MedicalCondition, MedicalConditionUpdate, MedicalConditionPublic
+from app.model.medication import Medication, MedicationUpdate, MedicationPublic
 
 router = APIRouter(prefix="/pets", tags=["pets"])
 
@@ -329,7 +331,7 @@ def add_pet_vaccination(
     pet = session.get(Pet, id)
     if not pet:
         raise HTTPException(status_code=404, detail="Pet not found")
-    if not current_user.is_superuser and (pet.user_id != current_user.id):
+    if pet.user_id != current_user.id:
         raise HTTPException(status_code=400, detail="Not enough permissions")
     
     vaccination = Vaccination.model_validate(vaccination_in, update={"pet_id": id})
@@ -379,7 +381,7 @@ def add_pet_allergy(
     pet = session.get(Pet, id)
     if not pet:
         raise HTTPException(status_code=404, detail="Pet not found")
-    if not current_user.is_superuser and (pet.user_id != current_user.id):
+    if pet.user_id != current_user.id:
         raise HTTPException(status_code=400, detail="Not enough permissions")
     
     allergy = Allergi.model_validate(allergy_in, update={"pet_id": id})
@@ -402,7 +404,7 @@ def remove_pet_allergy(
     pet = session.get(Pet, id)
     if not pet:
         raise HTTPException(status_code=404, detail="Pet not found")
-    if not current_user.is_superuser and (pet.user_id != current_user.id):
+    if pet.user_id != current_user.id:
         raise HTTPException(status_code=400, detail="Not enough permissions")
     
     allergy = session.get(Allergi, allergy_id)
@@ -412,3 +414,83 @@ def remove_pet_allergy(
     session.delete(allergy)
     session.commit()
     return Message(message="Allergy deleted successfully")
+
+
+# Medical Condition APIs
+@router.patch("/{id}/medical-condition", response_model=MedicalConditionPublic)
+def update_pet_medical_condition(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    id: uuid.UUID,
+    condition_update: MedicalConditionUpdate,
+) -> Any:
+    """
+    Update or create a pet's medical condition.
+    """
+    pet = session.get(Pet, id)
+    if not pet:
+        raise HTTPException(status_code=404, detail="Pet not found")
+    if pet.user_id != current_user.id:
+        raise HTTPException(status_code=400, detail="Not enough permissions")
+    
+    # Get existing medical condition for this pet
+    condition = session.exec(
+        select(MedicalCondition).where(MedicalCondition.pet_id == id)
+    ).first()
+    
+    if not condition:
+        # Create new medical condition record
+        condition_data = condition_update.model_dump(exclude_unset=True)
+        condition = MedicalCondition(**condition_data, pet_id=id)
+        session.add(condition)
+    else:
+        # Update existing medical condition record
+        update_dict = condition_update.model_dump(exclude_unset=True)
+        condition.sqlmodel_update(update_dict)
+        session.add(condition)
+    
+    session.commit()
+    session.refresh(condition)
+    return condition
+
+
+# Medication APIs
+@router.patch("/{id}/medication", response_model=MedicationPublic)
+def update_pet_medication(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    id: uuid.UUID,
+    medication_update: MedicationUpdate,
+) -> Any:
+    """
+    Update or create a pet's medication.
+    """
+    pet = session.get(Pet, id)
+    if not pet:
+        raise HTTPException(status_code=404, detail="Pet not found")
+    if pet.user_id != current_user.id:
+        raise HTTPException(status_code=400, detail="Not enough permissions")
+    
+    # Get existing medication for this pet
+    medication = session.exec(
+        select(Medication).where(Medication.pet_id == id)
+    ).first()
+    
+    if not medication:
+        # Create new medication record
+        medication_data = medication_update.model_dump(exclude_unset=True)
+        medication = Medication(**medication_data, pet_id=id)
+        session.add(medication)
+    else:
+        # Update existing medication record
+        update_dict = medication_update.model_dump(exclude_unset=True)
+        medication.sqlmodel_update(update_dict)
+        session.add(medication)
+    
+    session.commit()
+    session.refresh(medication)
+    return medication
+
+
