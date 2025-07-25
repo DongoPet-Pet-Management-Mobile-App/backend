@@ -494,3 +494,65 @@ def update_pet_medication(
     return medication
 
 
+# GET APIs for pet health information
+@router.get("/{id}/medical-condition", response_model=MedicalConditionPublic | None)
+def get_pet_medical_condition(
+    session: SessionDep, current_user: CurrentUser, id: uuid.UUID
+) -> Any:
+    """
+    Get pet's medical condition.
+    """
+    pet = session.get(Pet, id)
+    if not pet:
+        raise HTTPException(status_code=404, detail="Pet not found")
+    if pet.user_id != current_user.id:
+        raise HTTPException(status_code=400, detail="Not enough permissions")
+    
+    condition = session.exec(
+        select(MedicalCondition).where(MedicalCondition.pet_id == id)
+    ).first()
+    
+    return condition
+
+
+@router.get("/{id}/medication", response_model=MedicationPublic | None)
+def get_pet_medication(
+    session: SessionDep, current_user: CurrentUser, id: uuid.UUID
+) -> Any:
+    """
+    Get pet's medication.
+    """
+    pet = session.get(Pet, id)
+    if not pet:
+        raise HTTPException(status_code=404, detail="Pet not found")
+    if pet.user_id != current_user.id:
+        raise HTTPException(status_code=400, detail="Not enough permissions")
+    
+    medication = session.exec(
+        select(Medication).where(Medication.pet_id == id)
+    ).first()
+    
+    return medication
+
+
+@router.get("/{id}/insurance", response_model=InsurancePublic | None)
+def get_pet_insurance(
+    session: SessionDep, current_user: CurrentUser, id: uuid.UUID
+) -> Any:
+    """
+    Get pet's insurance.
+    """
+    pet = session.get(Pet, id)
+    if not pet:
+        raise HTTPException(status_code=404, detail="Pet not found")
+    if pet.user_id != current_user.id:
+        raise HTTPException(status_code=400, detail="Not enough permissions")
+    
+    insurance = session.exec(
+        select(Insurance).where(Insurance.pet_id == id)
+    ).first()
+    
+    return insurance
+
+
+
