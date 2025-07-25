@@ -149,6 +149,8 @@ class PetProfileUpdate(BaseModel):
     age: int | None = Field(default=None)
     weight: float | None = Field(default=None)
     chipnumber: str | None = Field(default=None, max_length=50)
+    color: str | None = Field(default=None, max_length=100)
+    height: float | None = Field(default=None)
 
 
 @router.patch("/{id}/profile", response_model=PetPublic)
