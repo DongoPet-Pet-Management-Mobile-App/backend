@@ -555,4 +555,45 @@ def get_pet_insurance(
     return insurance
 
 
+@router.get("/{id}/allergies", response_model=list[AllergiPublic])
+def get_pet_allergies(
+    session: SessionDep, current_user: CurrentUser, id: uuid.UUID
+) -> Any:
+    """
+    Get pet's allergies.
+    """
+    pet = session.get(Pet, id)
+    if not pet:
+        raise HTTPException(status_code=404, detail="Pet not found")
+    if pet.user_id != current_user.id:
+        raise HTTPException(status_code=400, detail="Not enough permissions")
+    
+    allergies = session.exec(
+        select(Allergi).where(Allergi.pet_id == id)
+    ).all()
+    
+    return allergies
+
+
+@router.get("/{id}/vaccinations", response_model=list[VaccinationPublic])
+def get_pet_vaccinations(
+    session: SessionDep, current_user: CurrentUser, id: uuid.UUID
+) -> Any:
+    """
+    Get pet's vaccinations.
+    """
+    pet = session.get(Pet, id)
+    if not pet:
+        raise HTTPException(status_code=404, detail="Pet not found")
+    if pet.user_id != current_user.id:
+        raise HTTPException(status_code=400, detail="Not enough permissions")
+    
+    vaccinations = session.exec(
+        select(Vaccination).where(Vaccination.pet_id == id)
+    ).all()
+    
+    return vaccinations
+
+
+
 
