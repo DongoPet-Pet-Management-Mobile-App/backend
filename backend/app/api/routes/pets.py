@@ -290,7 +290,7 @@ def update_pet_insurance(
     pet = session.get(Pet, id)
     if not pet:
         raise HTTPException(status_code=404, detail="Pet not found")
-    if not current_user.is_superuser and (pet.user_id != current_user.id):
+    if pet.user_id != current_user.id:
         raise HTTPException(status_code=400, detail="Not enough permissions")
     
     # Get or create insurance record for this pet
