@@ -8,7 +8,7 @@ from pydantic import BaseModel, Field
 from app.api.deps import CurrentUser, SessionDep
 from app.model.pet import Pet, PetCreate, PetPublic, PetsPublic, PetUpdate
 from app.models import Message
-from app.model.insurance import Insurance, InsuranceUpdate
+from app.model.insurance import Insurance, InsuranceUpdate, InsurancePublic
 from app.model.vaccination import Vaccination, VaccinationCreate, VaccinationPublic
 from app.model.allergi import Allergi, AllergiCreate, AllergiPublic
 
@@ -275,7 +275,7 @@ class PetInsuranceUpdate(BaseModel):
     notes: str | None = Field(default=None, max_length=65535)
 
 
-@router.patch("/{id}/insurance", response_model=PetPublic)
+@router.patch("/{id}/insurance", response_model=InsurancePublic)
 def update_pet_insurance(
     *,
     session: SessionDep,
@@ -310,8 +310,8 @@ def update_pet_insurance(
         session.add(insurance)
     
     session.commit()
-    session.refresh(pet)
-    return pet
+    session.refresh(insurance)
+    return insurance
 
 
 # Vaccination APIs
