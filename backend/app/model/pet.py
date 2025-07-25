@@ -1,6 +1,14 @@
 import uuid
 from sqlmodel import Field, Relationship, SQLModel
 from app.model.user import User
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from app.model.insurance import Insurance
+    from app.model.medical_condition import MedicalCondition
+    from app.model.medication import Medication
+    from app.model.vaccination import Vaccination
+    from app.model.allergi import Allergi
 
 class PetBase(SQLModel):
     name: str = Field(min_length=1, max_length=255)
@@ -16,6 +24,16 @@ class PetBase(SQLModel):
     relationship: str | None = Field(default=None, max_length=100)
     avatar: str | None = Field(default=None, max_length=500)
     chipnumber: str | None = Field(default=None, max_length=50)
+    bio: str | None = Field(default=None, max_length=65535)
+    favorite_food: str | None = Field(default=None, max_length=255)
+    favorite_toy: str | None = Field(default=None, max_length=255)
+    favorite_activity: str | None = Field(default=None, max_length=500)
+    aggresive : bool | None = Field(default=False)
+    pulls : bool | None = Field(default=False)
+    strangers: bool | None = Field(default=False)
+    walk_time: str | None = Field(default=None, max_length=500)   
+    feeding_time: str | None = Field(default=None, max_length=500)   
+    evening_routine: str | None = Field(default=None, max_length=500)   
 
 
 # Properties to receive on pet creation
@@ -38,6 +56,10 @@ class Pet(PetBase, table=True):
     )
     owner: User | None = Relationship(back_populates="pets")
     insurance: list["Insurance"] = Relationship(back_populates="pet")
+    medical_conditions: list["MedicalCondition"] = Relationship(back_populates="pet")
+    medications: list["Medication"] = Relationship(back_populates="pet")
+    vaccinations: list["Vaccination"] = Relationship(back_populates="pet")
+    allergies: list["Allergi"] = Relationship(back_populates="pet")
 
 
 # Properties to return via API, id is always required

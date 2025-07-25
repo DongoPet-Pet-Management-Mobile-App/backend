@@ -23,9 +23,10 @@ class Allergi(AllergiBase, table=True):
     pet_id: uuid.UUID = Field(
         foreign_key="pet.id", nullable=False, ondelete="CASCADE"
     )
+    detail : str | None = Field(default=None, max_length=500)
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
-    pet: Pet | None = Relationship(back_populates="allergis")
+    pet: Pet | None = Relationship(back_populates="allergies")
 
 
 class AllergiPublic(AllergiBase):
