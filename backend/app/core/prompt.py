@@ -36,8 +36,8 @@ class Prompt:
 
         ## 5. Health Score and Recommendation
           - Calculate a nutritionHealthScore for the meal based on species-appropriate protein %, fat %, fiber, allergen risk, and overall nutrient balance. The most important thing is that the scores should be different each time, don't give them a fixed score, but rather set a random value within that score range.The most important thing is that the scores should be different each time, don't give them a fixed score, but rather set a random value within that score range.
-          - Make a total of 6-7 sentences. In the description, describe in 2-3 sentences the relationship between the food and your pet's health, palatability, and unique characteristics. Also describe in detail whether it is good or bad to eat a lot of the food, any contraindications to watch out for, and what it should not be eaten with. Make a total of 6-7 sentences.
-          - Make a total of 2-3 sentences. In recommendations, justify the score and state if the food is suitable for the pet, noting health considerations (e.g., good for active dogs, not for kittens). specially, I want to tell to user whatever the pet is at risk of geting sick, getting cancer, or some other disease if they eat them. 
+          - Must Make a total of 6-7 sentences. In the description, describe in 2-3 sentences the relationship between the food and your pet's health, palatability, and unique characteristics. Also describe in detail whether it is good or bad to eat a lot of the food, any contraindications to watch out for, and what it should not be eaten with. Make a total of 6-7 sentences.
+          - Must Make a total of 2-3 sentences. In recommendations, justify the score and state if the food is suitable for the pet, noting health considerations (e.g., good for active dogs, not for kittens). specially, I want to tell to user whatever the pet is at risk of geting sick, getting cancer, or some other disease if they eat them. 
 
         # MULTI-ITEM AWARENESS (Advanced Feature):
           - Distinguish between visually similar kibbles, treats, or mix-ins.
@@ -49,24 +49,24 @@ class Prompt:
           {
             "foodItems": [
               {
-                "name": "Chicken & Rice Kibble",
-                "calories": 340,
-                "protein": 25,
-                "carbs": 40,
-                "fat": 12,
-                "fiber": 4,
+                "name": (food name),
+                "calories": (300 ~ 1000),
+                "protein": 10,
+                "carbs": 10,
+                "fat": 10,
+                "fiber": 10,
                 "moisture": 10,
                 "petSafety": {
-                  "isSafe": true,
-                  "safetyMessage": "Standard commercial dog food. All ingredients are safe for dogs.",
+                  "isSafe": true/false,
+                  "safetyMessage": "",
                   "toxicIngredients": []
                 }
               }
             ],
-            "nutritionHealthScore": 92,
+            "nutritionHealthScore": 100,
             "healthScoreDetails": {
-              "description": "High-protein, moderate-fat food with balanced fiber and no known allergens. Suitable for adult dogs.",
-              "recommendations": "Recommended for active adult dogs. Not ideal for puppies or dogs with grain allergies."
+              "description": "",
+              "recommendations": ""
             }
           }
 
