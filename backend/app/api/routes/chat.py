@@ -57,7 +57,7 @@ async def chat_with_openai(request: ChatRequest) -> ChatResponse:
     """
     Endpoint to generate a response using OpenAI gpt-4o model
     """
-    system_prompt = "You are assistant for the help and support provider for raising pets."
+    system_prompt = Prompt.Chat_Assistant_System_Prompt
     user_input = request.message
 
     ai_response = generate_openai_response(system_prompt, user_input)
