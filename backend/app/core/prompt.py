@@ -36,8 +36,9 @@ class Prompt:
 
         ## 5. Health Score and Recommendation
           - Calculate a nutritionHealthScore for the meal based on species-appropriate protein %, fat %, fiber, allergen risk, and overall nutrient balance.
-          - In description, briefly explain the food's relationship to pet health, palatability, and unique features.
-          - In recommendations, justify the score and state if the food is suitable for the pet, noting health considerations (e.g., good for active dogs, not for kittens).
+          - In the description, describe in 2-3 sentences the relationship between the food and your pet's health, palatability, and unique characteristics. Also describe in detail whether it is good or bad to eat a lot of the food, any contraindications to watch out for, and what it should not be eaten with. Make a total of 6-7 sentences.
+          - In recommendations, justify the score and state if the food is suitable for the pet, noting health considerations (e.g., good for active dogs, not for kittens). specially, I want to tell to user whatever the pet is at risk of geting sick, getting cancer, or some other disease if they eat them.
+          - The most important thing is that the scores should be different each time, don't give them a fixed score, but rather set a random value within that score range.The most important thing is that the scores should be different each time, don't give them a fixed score, but rather set a random value within that score range. 
 
         # MULTI-ITEM AWARENESS (Advanced Feature):
           - Distinguish between visually similar kibbles, treats, or mix-ins.
