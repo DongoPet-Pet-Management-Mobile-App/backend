@@ -151,12 +151,18 @@ def register_user(session: SessionDep, user_in: UserRegister) -> Any:
             detail="The user with this email already exists in the system",
         )
     
-    # Create UserCreate with proper field mapping
+    # Ensure we have a name for the required User.name field
+    name = user_in.name or user_in.full_name or user_in.email.split('@')[0]
+    
     user_create = UserCreate(
         email=user_in.email,
         password=user_in.password,
+        name=name,
         full_name=user_in.full_name,
-        name=user_in.full_name  # Map full_name to name if User model expects 'name'
+        phone_number=user_in.phone_number,
+        address=user_in.address,
+        language=user_in.language,
+        notification=user_in.notification
     )
     user = crud.create_user(session=session, user_create=user_create)
     return user
@@ -231,6 +237,8 @@ def delete_user(
     session.delete(user)
     session.commit()
     return Message(message="User deleted successfully")
+
+
 
 
 
