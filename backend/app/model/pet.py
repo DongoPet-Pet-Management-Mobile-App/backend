@@ -9,6 +9,7 @@ if TYPE_CHECKING:
     from app.model.medication import Medication
     from app.model.vaccination import Vaccination
     from app.model.allergi import Allergi
+    from app.model.food_scan_result import FoodScanResult
 
 class PetBase(SQLModel):
     name: str = Field(min_length=1, max_length=255)
@@ -60,6 +61,7 @@ class Pet(PetBase, table=True):
     medications: list["Medication"] = Relationship(back_populates="pet")
     vaccinations: list["Vaccination"] = Relationship(back_populates="pet")
     allergies: list["Allergi"] = Relationship(back_populates="pet")
+    food_scan_results: list["FoodScanResult"] = Relationship(back_populates="pet")
 
 
 # Properties to return via API, id is always required

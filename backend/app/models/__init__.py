@@ -8,8 +8,9 @@ from app.model.medical_condition import MedicalCondition
 from app.model.medication import Medication
 from app.model.vaccination import Vaccination
 from app.model.allergi import Allergi
+from app.model.food_scan_result import FoodScanResult
 
-__all__ = ["User", "Pet", "Insurance", "MedicalCondition", "Medication", "Vaccination", "Allergi"]
+__all__ = ["User", "Pet", "Insurance", "MedicalCondition", "Medication", "Vaccination", "Allergi", "FoodScanResult"]
 
 class ChatRequest(BaseModel):
     message: str
@@ -34,5 +35,6 @@ class Token(SQLModel):
 class NewPassword(SQLModel):
     token: str
     new_password: str = Field(min_length=8, max_length=40)
+
 
 

@@ -8,16 +8,19 @@ import requests
 import logging
 from typing import Optional
 
+import uuid
+from app.model.pet import Pet
+
 from dotenv import load_dotenv
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from pydantic.networks import EmailStr
 
 from langchain_openai import ChatOpenAI
-from app.api.deps import get_current_active_superuser
+from app.api.deps import get_current_active_superuser, SessionDep, CurrentUser
 from app.core.prompt import Prompt
-from app.models import Message
+from app.models import Message, Pet
 from app.utils import generate_test_email, send_email
-
+from app.model.food_scan_result import FoodScanResult, FoodScanResultCreate
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -65,13 +68,23 @@ async def health_check() -> bool:
 
 @router.post("/analyze-food-image")
 async def analyze_food_image(
+    session: SessionDep,
+    current_user: CurrentUser,
     file: UploadFile = File(...),
+    pet_id: uuid.UUID = Form(...),
     include_portion_estimates: Optional[bool] = Form(False)
 ):
     """
-    Analyze food image using OpenAI vision model and return detailed nutritional analysis
+    Analyze food image using OpenAI vision model and save results to database
     """
     try:
+        # Verify pet ownership
+        pet = session.get(Pet, pet_id)
+        if not pet:
+            raise HTTPException(status_code=404, detail="Pet not found")
+        if pet.user_id != current_user.id:
+            raise HTTPException(status_code=400, detail="Not enough permissions")
+        
         # Read and encode image
         image_data = await file.read()
         base64_image = base64.b64encode(image_data).decode('utf-8')
@@ -124,6 +137,36 @@ async def analyze_food_image(
         # Calculate nutrition health score if missing
         if "nutritionHealthScore" not in result and "foodItems" in result:
             result["nutritionHealthScore"] = _calculate_nutrition_health_score(result["foodItems"])
+
+        # After getting the result, save to database
+        if "foodItems" in result and result["foodItems"]:
+            food_item = result["foodItems"][0]  # Take first item
+            pet_safety = food_item.get("petSafety", {})
+            health_details = result.get("healthScoreDetails", {})
+            
+            food_scan_create = FoodScanResultCreate(
+                food_name=food_item.get("name"),
+                calories=food_item.get("calories"),
+                protein=food_item.get("protein"),
+                carbs=food_item.get("carbs"),
+                fat=food_item.get("fat"),
+                fiber=food_item.get("fiber"),
+                moisture=food_item.get("moisture"),
+                is_safe=pet_safety.get("isSafe"),
+                safety_message=pet_safety.get("safetyMessage"),
+                toxic_ingredients=json.dumps(pet_safety.get("toxicIngredients", [])),
+                nutrition_health_score=result.get("nutritionHealthScore"),
+                health_score_description=health_details.get("description"),
+                health_score_recommendations=health_details.get("recommendations"),
+                has_multiple_items=result.get("hasMultipleItems", False)
+            )
+            
+            food_scan_result = FoodScanResult.model_validate(
+                food_scan_create, update={"pet_id": pet_id}
+            )
+            session.add(food_scan_result)
+            session.commit()
+            session.refresh(food_scan_result)
 
         return result
 
@@ -196,9 +239,11 @@ async def scan_barcode(file: UploadFile = File(...)):
         logger.info(f"Detected barcode: {barcode_data} (Type: {barcode_type})")
         
         # Get product data from Open Food Facts API
-        api_url = f"https://world.openfoodfacts.org/api/v0/product/{barcode_data}.json"
-        
+        api_url = f"https://world.openpetfoodfacts.org/api/v0/product/{barcode_data}.json"
+
         response = requests.get(api_url, timeout=10)
+
+        print("Barcode API response: ", response.content)
         
         if response.status_code != 200:
             raise HTTPException(
@@ -274,3 +319,4 @@ async def scan_barcode(file: UploadFile = File(...)):
             status_code=500,
             detail=f"Failed to scan barcode: {str(e)}"
         )
+
