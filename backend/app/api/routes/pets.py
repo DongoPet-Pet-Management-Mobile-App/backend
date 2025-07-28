@@ -619,7 +619,7 @@ async def upload_pet_avatar(
             raise HTTPException(status_code=400, detail="File must be an image")
         
         # Create directory if it doesn't exist
-        avatar_dir = Path("backend/images/avatar")
+        avatar_dir = Path("upload/images/avatar")
         avatar_dir.mkdir(parents=True, exist_ok=True)
         
         # Read image data
