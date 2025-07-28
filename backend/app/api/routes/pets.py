@@ -1,9 +1,11 @@
 import uuid
 from typing import Any
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, File, UploadFile
 from sqlmodel import func, select
 from pydantic import BaseModel, Field
+import os
+from pathlib import Path
 
 from app.api.deps import CurrentUser, SessionDep
 from app.model.pet import Pet, PetCreate, PetPublic, PetsPublic, PetUpdate
@@ -595,6 +597,53 @@ def get_pet_vaccinations(
     ).all()
     
     return vaccinations
+
+
+@router.post("/{id}/avatar", response_model=PetPublic)
+async def upload_pet_avatar(
+    session: SessionDep,
+    id: uuid.UUID,
+    file: UploadFile = File(...)
+):
+    """
+    Upload and save pet avatar image
+    """
+    try:
+        # Verify pet exists
+        pet = session.get(Pet, id)
+        if not pet:
+            raise HTTPException(status_code=404, detail="Pet not found")
+        
+        # Validate file type
+        if not file.content_type or not file.content_type.startswith('image/'):
+            raise HTTPException(status_code=400, detail="File must be an image")
+        
+        # Create directory if it doesn't exist
+        avatar_dir = Path("backend/images/avatar")
+        avatar_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Read image data
+        image_data = await file.read()
+        
+        # Save image with pet_id as filename
+        file_path = avatar_dir / f"{pet.id}.png"
+        with open(file_path, "wb") as f:
+            f.write(image_data)
+        
+        # Create URI for database
+        avatar_uri = f"/images/avatar/{pet.id}.png"
+        
+        # Update pet avatar field
+        pet.avatar = avatar_uri
+        session.add(pet)
+        session.commit()
+        session.refresh(pet)
+        
+        return pet
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to upload avatar: {str(e)}")
+
 
 
 

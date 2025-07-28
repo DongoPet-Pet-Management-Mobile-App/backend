@@ -241,48 +241,4 @@ def delete_user(
     return Message(message="User deleted successfully")
 
 
-@router.post("/me/avatar", response_model=UserPublic)
-async def upload_avatar(
-    session: SessionDep,
-    current_user: CurrentUser,
-    file: UploadFile = File(...)
-):
-    """
-    Upload and save user avatar image
-    """
-    try:
-        # Validate file type
-        if not file.content_type or not file.content_type.startswith('image/'):
-            raise HTTPException(status_code=400, detail="File must be an image")
-        
-        # Create directory if it doesn't exist
-        avatar_dir = Path("backend/images/avatar")
-        avatar_dir.mkdir(parents=True, exist_ok=True)
-        
-        # Read image data
-        image_data = await file.read()
-        
-        # Save image with user_id as filename
-        file_path = avatar_dir / f"{current_user.id}.png"
-        with open(file_path, "wb") as f:
-            f.write(image_data)
-        
-        # Create URI for database
-        avatar_uri = f"/images/avatar/{current_user.id}.png"
-        
-        # Update user avatar field
-        current_user.avatar = avatar_uri
-        session.add(current_user)
-        session.commit()
-        session.refresh(current_user)
-        
-        return current_user
-        
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to upload avatar: {str(e)}")
-
-
-
-
-
 
