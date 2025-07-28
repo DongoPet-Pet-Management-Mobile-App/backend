@@ -69,7 +69,6 @@ async def health_check() -> bool:
 @router.post("/analyze-food-image")
 async def analyze_food_image(
     session: SessionDep,
-    current_user: CurrentUser,
     file: UploadFile = File(...),
     pet_id: uuid.UUID = Form(...),
     include_portion_estimates: Optional[bool] = Form(False)
@@ -78,12 +77,10 @@ async def analyze_food_image(
     Analyze food image using OpenAI vision model and save results to database
     """
     try:
-        # Verify pet ownership
+        # Verify pet exists
         pet = session.get(Pet, pet_id)
         if not pet:
             raise HTTPException(status_code=404, detail="Pet not found")
-        if pet.user_id != current_user.id:
-            raise HTTPException(status_code=400, detail="Not enough permissions")
         
         # Read and encode image
         image_data = await file.read()
@@ -319,4 +316,5 @@ async def scan_barcode(file: UploadFile = File(...)):
             status_code=500,
             detail=f"Failed to scan barcode: {str(e)}"
         )
+
 
