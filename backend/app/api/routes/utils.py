@@ -250,6 +250,8 @@ async def scan_barcode(file: UploadFile = File(...)):
             - rating_color: "#4CAF50" (good), "#FFA500" (fair), "#FF4444" (bad)
             - MUST include exactly 3 negative items and 4 positive items minimum
             - Use flexible icons that match the content (🧪🧂🍬🔥💊⚠️🧊 for negatives, 🥩🌾🍎💧🔥💪🛡️ for positives)
+            - hasInfo logic: Set to true ONLY when details array has 3 or more items, false otherwise
+            - Details can have 2-5 items, with some items having 4-5 details for comprehensive analysis
             - Analyze negatives: toxic ingredients, excessive sugar/sodium, harmful additives, calories, preservatives
             - Analyze positives: protein content, fiber, essential nutrients, pet-safe ingredients, vitamins, minerals
             
@@ -293,7 +295,7 @@ async def scan_barcode(file: UploadFile = File(...)):
                                 {"label": "Daily value: 8%", "color": "#FFA500"},
                                 {"label": "Recommended: <1.5g", "color": "#666"}
                             ],
-                            "hasInfo": true
+                            "hasInfo": false
                         },
                         {
                             "icon": "🍬",
@@ -303,7 +305,9 @@ async def scan_barcode(file: UploadFile = File(...)):
                             "color": "#FF4444",
                             "details": [
                                 {"label": "Added sugars: 2g", "color": "#FF4444"},
-                                {"label": "Natural sugars: 1g", "color": "#FFA500"}
+                                {"label": "Natural sugars: 1g", "color": "#FFA500"},
+                                {"label": "Daily limit: 5g", "color": "#666"},
+                                {"label": "Pet safety: Moderate risk", "color": "#FFA500"}
                             ],
                             "hasInfo": true
                         },
@@ -315,7 +319,8 @@ async def scan_barcode(file: UploadFile = File(...)):
                             "color": "#FFA500",
                             "details": [
                                 {"label": "BHA/BHT: Present", "color": "#FFA500"},
-                                {"label": "Natural preservatives: Yes", "color": "#4CAF50"}
+                                {"label": "Natural preservatives: Yes", "color": "#4CAF50"},
+                                {"label": "Artificial colors: None", "color": "#4CAF50"}
                             ],
                             "hasInfo": true
                         }
@@ -329,7 +334,10 @@ async def scan_barcode(file: UploadFile = File(...)):
                             "color": "#4CAF50",
                             "details": [
                                 {"label": "Complete protein: 22g", "color": "#4CAF50"},
-                                {"label": "Essential amino acids: Good", "color": "#4CAF50"}
+                                {"label": "Essential amino acids: Good", "color": "#4CAF50"},
+                                {"label": "Digestibility: 95%", "color": "#4CAF50"},
+                                {"label": "Muscle maintenance: Excellent", "color": "#4CAF50"},
+                                {"label": "Age appropriate: All life stages", "color": "#4CAF50"}
                             ],
                             "hasInfo": true
                         },
@@ -342,7 +350,8 @@ async def scan_barcode(file: UploadFile = File(...)):
                             "details": [
                                 {"label": "Supports digestion", "color": "#4CAF50"},
                                 {"label": "Prebiotics included", "color": "#4CAF50"}
-                            ]
+                            ],
+                            "hasInfo": false
                         },
                         {
                             "icon": "💧",
@@ -352,7 +361,8 @@ async def scan_barcode(file: UploadFile = File(...)):
                             "color": "#4CAF50",
                             "details": [
                                 {"label": "Omega-3: 2g", "color": "#4CAF50"},
-                                {"label": "Omega-6: 8g", "color": "#4CAF50"}
+                                {"label": "Omega-6: 8g", "color": "#4CAF50"},
+                                {"label": "Ratio balance: Optimal", "color": "#4CAF50"}
                             ],
                             "hasInfo": true
                         },
@@ -365,7 +375,8 @@ async def scan_barcode(file: UploadFile = File(...)):
                             "details": [
                                 {"label": "Vitamin A: Good", "color": "#4CAF50"},
                                 {"label": "Vitamin E: Good", "color": "#4CAF50"}
-                            ]
+                            ],
+                            "hasInfo": false
                         }
                     ]
                 }
@@ -417,3 +428,4 @@ async def scan_barcode(file: UploadFile = File(...)):
             status_code=500,
             detail=f"Failed to scan barcode: {str(e)}"
         )
+
