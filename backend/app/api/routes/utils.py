@@ -201,7 +201,7 @@ def _calculate_nutrition_health_score(food_items):
 @router.post("/scan-barcode")
 async def scan_barcode(file: UploadFile = File(...)):
     """
-    Scan barcode from image and retrieve product data from Open Food Facts API
+    Scan barcode from image and retrieve product data using OpenAI
     """
     try:
         # Read and decode image
@@ -235,56 +235,64 @@ async def scan_barcode(file: UploadFile = File(...)):
         
         logger.info(f"Detected barcode: {barcode_data} (Type: {barcode_type})")
         
-        # Get product data from Open Food Facts API
-        api_url = f"https://world.openpetfoodfacts.org/api/v0/product/{barcode_data}.json"
-
-        response = requests.get(api_url, timeout=10)
-
-        print("Barcode API response: ", response.content)
+        # Create system prompt for barcode analysis
+        system_prompt = """
+            You are a pet food product database expert. Based on the provided barcode data and type, 
+            generate comprehensive product information in the exact JSON format specified below.
+            
+            Use your knowledge of pet food products, brands, and nutritional standards to provide 
+            accurate and realistic product details. If you cannot identify the exact product, 
+            provide reasonable estimates based on typical pet food products.
+            
+            Respond ONLY with valid JSON in this exact structure:
+            {
+                "barcode": "barcode_value",
+                "barcode_type": "barcode_type",
+                "product_name": "Product Name",
+                "brand": "Brand Name",
+                "categories": "Pet Food Category",
+                "ingredients": "Detailed ingredients list",
+                "nutrition_facts": {
+                    "energy_kcal": 350,
+                    "fat": 15.0,
+                    "saturated_fat": 5.0,
+                    "carbohydrates": 40.0,
+                    "sugars": 3.0,
+                    "fiber": 4.0,
+                    "proteins": 25.0,
+                    "salt": 1.2,
+                    "sodium": 0.5
+                },
+                "serving_size": "1 cup (100g)",
+                "packaging": "Dry bag",
+                "labels": "Complete nutrition, AAFCO approved",
+                "image_url": null,
+                "nutrition_grade": "B",
+                "ecoscore_grade": "C",
+                "nova_group": 3
+            }
+        """
         
-        if response.status_code != 200:
-            raise HTTPException(
-                status_code=500,
-                detail=f"Failed to fetch product data from API: {response.status_code}"
-            )
+        # Create user message with barcode data
+        user_message = f"Barcode: {barcode_data}\nBarcode Type: {barcode_type}"
         
-        api_data = response.json()
+        # Generate response using OpenAI
+        response = openai_llm.invoke([
+            ("system", system_prompt),
+            ("user", user_message)
+        ])
         
-        if api_data.get("status") != 1:
-            raise HTTPException(
-                status_code=404,
-                detail=f"Product not found for barcode: {barcode_data}"
-            )
-        
-        product = api_data.get("product", {})
-        
-        # Extract relevant product information
-        product_data = {
-            "barcode": barcode_data,
-            "barcode_type": barcode_type,
-            "product_name": product.get("product_name", "Unknown"),
-            "brand": product.get("brands", "Unknown"),
-            "categories": product.get("categories", "Unknown"),
-            "ingredients": product.get("ingredients_text", "Not available"),
-            "nutrition_facts": {
-                "energy_kcal": product.get("nutriments", {}).get("energy-kcal_100g"),
-                "fat": product.get("nutriments", {}).get("fat_100g"),
-                "saturated_fat": product.get("nutriments", {}).get("saturated-fat_100g"),
-                "carbohydrates": product.get("nutriments", {}).get("carbohydrates_100g"),
-                "sugars": product.get("nutriments", {}).get("sugars_100g"),
-                "fiber": product.get("nutriments", {}).get("fiber_100g"),
-                "proteins": product.get("nutriments", {}).get("proteins_100g"),
-                "salt": product.get("nutriments", {}).get("salt_100g"),
-                "sodium": product.get("nutriments", {}).get("sodium_100g")
-            },
-            "serving_size": product.get("serving_size"),
-            "packaging": product.get("packaging"),
-            "labels": product.get("labels"),
-            "image_url": product.get("image_url"),
-            "nutrition_grade": product.get("nutrition_grades"),
-            "ecoscore_grade": product.get("ecoscore_grade"),
-            "nova_group": product.get("nova_group")
-        }
+        # Parse JSON response
+        try:
+            product_data = json.loads(response.content)
+        except json.JSONDecodeError:
+            # If response is not valid JSON, try to extract JSON from the response
+            import re
+            json_match = re.search(r'\{.*\}', response.content, re.DOTALL)
+            if json_match:
+                product_data = json.loads(json_match.group())
+            else:
+                raise HTTPException(status_code=500, detail="Failed to parse AI response as JSON")
         
         # Debug output - log the return data
         logger.info("=== PRODUCT DATA DEBUG OUTPUT ===")
@@ -304,17 +312,10 @@ async def scan_barcode(file: UploadFile = File(...)):
         
     except HTTPException:
         raise
-    except requests.RequestException as e:
-        logger.error(f"API request failed: {str(e)}")
-        raise HTTPException(
-            status_code=500,
-            detail=f"Failed to fetch product data: {str(e)}"
-        )
     except Exception as e:
         logger.error(f"Barcode scanning failed: {str(e)}")
         raise HTTPException(
             status_code=500,
             detail=f"Failed to scan barcode: {str(e)}"
         )
-
 
