@@ -238,11 +238,20 @@ async def scan_barcode(file: UploadFile = File(...)):
         # Create system prompt for barcode analysis
         system_prompt = """
             You are a pet food product database expert. Based on the provided barcode data and type, 
-            generate comprehensive product information in the exact JSON format specified below.
+            generate comprehensive product information with detailed health analysis for pets in the exact JSON format specified below.
             
             Use your knowledge of pet food products, brands, and nutritional standards to provide 
             accurate and realistic product details. If you cannot identify the exact product, 
             provide reasonable estimates based on typical pet food products.
+            
+            For health analysis, evaluate the product specifically for pet safety and nutrition:
+            - overall_score: 1-100 (higher is better for pets)
+            - rating_label: "Excellent", "Good", "Fair", "Poor", "Bad"
+            - rating_color: "#4CAF50" (good), "#FFA500" (fair), "#FF4444" (bad)
+            - MUST include exactly 3 negative items and 4 positive items minimum
+            - Use flexible icons that match the content (🧪🧂🍬🔥💊⚠️🧊 for negatives, 🥩🌾🍎💧🔥💪🛡️ for positives)
+            - Analyze negatives: toxic ingredients, excessive sugar/sodium, harmful additives, calories, preservatives
+            - Analyze positives: protein content, fiber, essential nutrients, pet-safe ingredients, vitamins, minerals
             
             Respond ONLY with valid JSON in this exact structure:
             {
@@ -252,6 +261,11 @@ async def scan_barcode(file: UploadFile = File(...)):
                 "brand": "Brand Name",
                 "categories": "Pet Food Category",
                 "ingredients": "Detailed ingredients list",
+                "serving_size": "1 cup (100g)",
+                "image_url": null,
+                "nutrition_grade": "B",
+                "ecoscore_grade": "C",
+                "nova_group": 3,
                 "nutrition_facts": {
                     "energy_kcal": 350,
                     "fat": 15.0,
@@ -263,13 +277,98 @@ async def scan_barcode(file: UploadFile = File(...)):
                     "salt": 1.2,
                     "sodium": 0.5
                 },
-                "serving_size": "1 cup (100g)",
-                "packaging": "Dry bag",
-                "labels": "Complete nutrition, AAFCO approved",
-                "image_url": null,
-                "nutrition_grade": "B",
-                "ecoscore_grade": "C",
-                "nova_group": 3
+                "health_analysis": {
+                    "overall_score": 85,
+                    "score_max": 100,
+                    "rating_label": "Good",
+                    "rating_color": "#4CAF50",
+                    "negatives": [
+                        {
+                            "icon": "🧂",
+                            "title": "Sodium",
+                            "subtitle": "Moderate sodium content",
+                            "value": "1.2g",
+                            "color": "#FFA500",
+                            "details": [
+                                {"label": "Daily value: 8%", "color": "#FFA500"},
+                                {"label": "Recommended: <1.5g", "color": "#666"}
+                            ],
+                            "hasInfo": true
+                        },
+                        {
+                            "icon": "🍬",
+                            "title": "Sugar",
+                            "subtitle": "Contains added sugars",
+                            "value": "3g",
+                            "color": "#FF4444",
+                            "details": [
+                                {"label": "Added sugars: 2g", "color": "#FF4444"},
+                                {"label": "Natural sugars: 1g", "color": "#FFA500"}
+                            ],
+                            "hasInfo": true
+                        },
+                        {
+                            "icon": "🧪",
+                            "title": "Additives",
+                            "subtitle": "Contains preservatives",
+                            "count": 2,
+                            "color": "#FFA500",
+                            "details": [
+                                {"label": "BHA/BHT: Present", "color": "#FFA500"},
+                                {"label": "Natural preservatives: Yes", "color": "#4CAF50"}
+                            ],
+                            "hasInfo": true
+                        }
+                    ],
+                    "positives": [
+                        {
+                            "icon": "🥩",
+                            "title": "Protein",
+                            "subtitle": "Excellent protein content",
+                            "value": "25g",
+                            "color": "#4CAF50",
+                            "details": [
+                                {"label": "Complete protein: 22g", "color": "#4CAF50"},
+                                {"label": "Essential amino acids: Good", "color": "#4CAF50"}
+                            ],
+                            "hasInfo": true
+                        },
+                        {
+                            "icon": "🌾",
+                            "title": "Fiber",
+                            "subtitle": "Good fiber content",
+                            "value": "4g",
+                            "color": "#4CAF50",
+                            "details": [
+                                {"label": "Supports digestion", "color": "#4CAF50"},
+                                {"label": "Prebiotics included", "color": "#4CAF50"}
+                            ]
+                        },
+                        {
+                            "icon": "💧",
+                            "title": "Fat Content",
+                            "subtitle": "Balanced fat levels",
+                            "value": "15g",
+                            "color": "#4CAF50",
+                            "details": [
+                                {"label": "Omega-3: 2g", "color": "#4CAF50"},
+                                {"label": "Omega-6: 8g", "color": "#4CAF50"}
+                            ],
+                            "hasInfo": true
+                        },
+                        {
+                            "icon": "💪",
+                            "title": "Vitamins",
+                            "subtitle": "Essential vitamins added",
+                            "value": "Complete",
+                            "color": "#4CAF50",
+                            "details": [
+                                {"label": "Vitamin A: Good", "color": "#4CAF50"},
+                                {"label": "Vitamin E: Good", "color": "#4CAF50"}
+                            ]
+                        }
+                    ]
+                }
             }
         """
         
