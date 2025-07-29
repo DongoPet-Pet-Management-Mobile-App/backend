@@ -318,4 +318,3 @@ async def scan_barcode(file: UploadFile = File(...)):
             status_code=500,
             detail=f"Failed to scan barcode: {str(e)}"
         )
-
