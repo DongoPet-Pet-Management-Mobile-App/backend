@@ -9,8 +9,9 @@ from app.model.medication import Medication
 from app.model.vaccination import Vaccination
 from app.model.allergi import Allergi
 from app.model.food_scan_result import FoodScanResult
+from app.model.reminder import Reminder
 
-__all__ = ["User", "Pet", "Insurance", "MedicalCondition", "Medication", "Vaccination", "Allergi", "FoodScanResult"]
+__all__ = ["User", "Pet", "Insurance", "MedicalCondition", "Medication", "Vaccination", "Allergi", "FoodScanResult", "Reminder"]
 
 class ChatRequest(BaseModel):
     message: str
