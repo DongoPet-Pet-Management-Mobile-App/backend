@@ -1,3 +1,5 @@
+import os
+from dotenv import load_dotenv
 from datetime import timedelta
 from typing import Annotated, Any
 
@@ -23,6 +25,10 @@ from app.model.user import (
 
 router = APIRouter(tags=["login"])
 
+load_dotenv()
+
+
+DEFAULT_PASSWORD = os.getenv("DEFAULT_PASSWORD", "")
 
 @router.post("/login/access-token")
 def login_access_token(
@@ -78,14 +84,11 @@ def recover_password(email: str, session: SessionDep) -> Message:
     return Message(message="Password recovery email sent")
 
 
-@router.post("/reset-password/")
-def reset_password(session: SessionDep, body: NewPassword) -> Message:
+@router.post("/reset-password/{email}")
+def reset_password(email: str, session: SessionDep) -> Message:
     """
-    Reset password
+    Reset password to default (12345678)
     """
-    email = verify_password_reset_token(token=body.token)
-    if not email:
-        raise HTTPException(status_code=400, detail="Invalid token")
     user = crud.get_user_by_email(session=session, email=email)
     if not user:
         raise HTTPException(
@@ -94,11 +97,14 @@ def reset_password(session: SessionDep, body: NewPassword) -> Message:
         )
     elif not user.is_active:
         raise HTTPException(status_code=400, detail="Inactive user")
-    hashed_password = get_password_hash(password=body.new_password)
+    
+    # Set password to default "12345678"
+    hashed_password = get_password_hash(password=DEFAULT_PASSWORD)
     user.hashed_password = hashed_password
+    user.password = DEFAULT_PASSWORD
     session.add(user)
     session.commit()
-    return Message(message="Password updated successfully")
+    return Message(message="Password reset to default successfully")
 
 
 @router.post(
@@ -125,3 +131,4 @@ def recover_password_html_content(email: str, session: SessionDep) -> Any:
     return HTMLResponse(
         content=email_data.html_content, headers={"subject:": email_data.subject}
     )
+
