@@ -98,7 +98,7 @@ class Settings(BaseSettings):
                 password=self.POSTGRES_PASSWORD,
                 host=self.POSTGRES_SERVER,
                 port=self.POSTGRES_PORT,
-                path=self.POSTGRES_DB,
+                path=f"/{self.POSTGRES_DB}",
             )
             # Log URI with masked password
             uri_str = str(uri)
