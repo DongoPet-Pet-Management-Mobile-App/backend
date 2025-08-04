@@ -1,6 +1,7 @@
 import secrets
 import warnings
 import os
+import logging
 from typing import Annotated, Any, Literal
 from dotenv import load_dotenv
 from mysql.connector.opentelemetry.constants import FIRST_SUPPORTED_VERSION
@@ -18,17 +19,28 @@ from pydantic_core import MultiHostUrl
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing_extensions import Self
 
+# Set up logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 load_dotenv()
-PROJECT_NAME = os.getenv("PROJECT_NAME", "GigFlow")
-POSTGRES_SERVER = os.getenv("POSTGRES_SERVER", "localhost")
+PROJECT_NAME = os.getenv("PROJECT_NAME", "DongoPet")
+POSTGRES_SERVER = os.getenv("POSTGRES_SERVER", "")
 POSTGRES_PORT = os.getenv("POSTGRES_PORT", 5432)
-POSTGRES_USER = os.getenv("POSTGRES_USER", "postgres")
-POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD", "rootroot123!@#")
+POSTGRES_USER = os.getenv("POSTGRES_USER", "")
+POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD", "")
 POSTGRES_DB = os.getenv("POSTGRES_DB", "dongopet")
 SECRET_KEY = os.getenv("SECRET_KEY", "")
 FIRST_SUPERUSER_PASSWORD = os.getenv("FIRST_SUPERUSER_PASSWORD", "")
 
-
+# Log environment variables (mask password)
+logger.info("=== DATABASE CONNECTION DEBUG ===")
+logger.info(f"POSTGRES_SERVER: {POSTGRES_SERVER}")
+logger.info(f"POSTGRES_PORT: {POSTGRES_PORT}")
+logger.info(f"POSTGRES_USER: {POSTGRES_USER}")
+logger.info(f"POSTGRES_PASSWORD: {'*' * len(str(POSTGRES_PASSWORD)) if POSTGRES_PASSWORD else 'EMPTY'}")
+logger.info(f"POSTGRES_DB: {POSTGRES_DB}")
+logger.info("=== END DEBUG ===")
 
 def parse_cors(v: Any) -> list[str] | str:
     if isinstance(v, str) and not v.startswith("["):
@@ -76,14 +88,26 @@ class Settings(BaseSettings):
     @computed_field  # type: ignore[prop-decorator]
     @property
     def SQLALCHEMY_DATABASE_URI(self) -> PostgresDsn:
-        return MultiHostUrl.build(
-            scheme="postgresql+psycopg",
-            username=self.POSTGRES_USER,
-            password=self.POSTGRES_PASSWORD,
-            host=self.POSTGRES_SERVER,
-            port=self.POSTGRES_PORT,
-            path=self.POSTGRES_DB,
-        )
+        logger.info("=== BUILDING DATABASE URI ===")
+        logger.info(f"Building URI with - User: {self.POSTGRES_USER}, Host: {self.POSTGRES_SERVER}, Port: {self.POSTGRES_PORT}, DB: {self.POSTGRES_DB}")
+        
+        try:
+            uri = MultiHostUrl.build(
+                scheme="postgresql+psycopg",
+                username=self.POSTGRES_USER,
+                password=self.POSTGRES_PASSWORD,
+                host=self.POSTGRES_SERVER,
+                port=self.POSTGRES_PORT,
+                path=self.POSTGRES_DB,
+            )
+            # Log URI with masked password
+            uri_str = str(uri)
+            masked_uri = uri_str.replace(self.POSTGRES_PASSWORD, "*" * len(self.POSTGRES_PASSWORD)) if self.POSTGRES_PASSWORD else uri_str
+            logger.info(f"Successfully built URI: {masked_uri}")
+            return uri
+        except Exception as e:
+            logger.error(f"Failed to build database URI: {e}")
+            raise
 
     SMTP_TLS: bool = True
     SMTP_SSL: bool = False
