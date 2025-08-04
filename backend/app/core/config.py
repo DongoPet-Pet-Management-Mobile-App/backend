@@ -91,14 +91,26 @@ class Settings(BaseSettings):
         logger.info("=== BUILDING DATABASE URI ===")
         logger.info(f"Building URI with - User: {self.POSTGRES_USER}, Host: {self.POSTGRES_SERVER}, Port: {self.POSTGRES_PORT}, DB: {self.POSTGRES_DB}")
         
+        # Log each parameter individually
+        logger.info(f"scheme: 'postgresql+psycopg'")
+        logger.info(f"username: '{self.POSTGRES_USER}' (type: {type(self.POSTGRES_USER)})")
+        logger.info(f"password: '{'*' * len(str(self.POSTGRES_PASSWORD)) if self.POSTGRES_PASSWORD else 'EMPTY'}' (type: {type(self.POSTGRES_PASSWORD)})")
+        logger.info(f"host: '{self.POSTGRES_SERVER}' (type: {type(self.POSTGRES_SERVER)})")
+        logger.info(f"port: {self.POSTGRES_PORT} (type: {type(self.POSTGRES_PORT)})")
+        logger.info(f"path: '{self.POSTGRES_DB}' (type: {type(self.POSTGRES_DB)})")
+        
         try:
+            # Try building the URL manually first
+            manual_url = f"postgresql+psycopg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_SERVER}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
+            logger.info(f"Manual URL would be: {manual_url.replace(self.POSTGRES_PASSWORD, '*' * len(self.POSTGRES_PASSWORD))}")
+            
             uri = MultiHostUrl.build(
                 scheme="postgresql+psycopg",
                 username=self.POSTGRES_USER,
                 password=self.POSTGRES_PASSWORD,
                 host=self.POSTGRES_SERVER,
                 port=self.POSTGRES_PORT,
-                path=f"/{self.POSTGRES_DB}",
+                path=self.POSTGRES_DB,
             )
             # Log URI with masked password
             uri_str = str(uri)
@@ -107,7 +119,18 @@ class Settings(BaseSettings):
             return uri
         except Exception as e:
             logger.error(f"Failed to build database URI: {e}")
-            raise
+            logger.error(f"Exception type: {type(e)}")
+            # Try alternative approach
+            try:
+                logger.info("Trying alternative PostgresDsn approach...")
+                from pydantic import PostgresDsn
+                manual_url = f"postgresql+psycopg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_SERVER}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
+                uri = PostgresDsn(manual_url)
+                logger.info(f"Alternative approach succeeded: {str(uri).replace(self.POSTGRES_PASSWORD, '*' * len(self.POSTGRES_PASSWORD))}")
+                return uri
+            except Exception as e2:
+                logger.error(f"Alternative approach also failed: {e2}")
+                raise e
 
     SMTP_TLS: bool = True
     SMTP_SSL: bool = False
