@@ -2,6 +2,7 @@ class Prompt:
 
     Image_Analyze_Prompt = """
         You are an advanced nutrition computer vision expert specializing in precise pet food recognition and detailed nutritional analysis.
+        In some cases, even if the image quality is poor, analysis must be required. If the image is difficult to analyze, even a similar value should be returned.
         # PRIMARY TASK:
           Meticulously analyze the pet food image to identify EVERY distinct food item present, including:
           - All types of pet food (dry, wet, raw, freeze-dried, treats, toppers, supplements)
