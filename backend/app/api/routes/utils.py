@@ -93,6 +93,7 @@ async def analyze_food_image(
         user_text = """
             Analyze this food image with maximum precision. Identify ALL food items (including components of mixed dishes),
             provide precise nutritional values, detect reference objects, and estimate portion sizes with high accuracy. 
+            In some cases, even if the image quality is poor, analysis must be required. If the image is difficult to analyze, even a similar value should be returned.
             Include spatial relationships between items and confidence scores for each identification.
         """
 
@@ -245,6 +246,8 @@ async def scan_barcode(file: UploadFile = File(...)):
             Use your knowledge of pet food products, brands, and nutritional standards to provide 
             accurate and realistic product details. If you cannot identify the exact product, 
             provide reasonable estimates based on typical pet food products.
+            
+            In some cases, even if the image quality is poor, analysis must be required. If the image is difficult to analyze, even a similar value should be returned.
             
             For health analysis, evaluate the product specifically for pet safety and nutrition:
             - overall_score: 1-100 (higher is better for pets)
