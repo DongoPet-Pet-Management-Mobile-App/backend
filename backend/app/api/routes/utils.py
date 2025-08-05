@@ -114,6 +114,8 @@ async def analyze_food_image(
             ("system", system_prompt),
             message
         ])
+        
+        print("AI response: ", response)
 
         # Parse JSON response
         try:
@@ -393,6 +395,8 @@ async def scan_barcode(file: UploadFile = File(...)):
             ("system", system_prompt),
             ("user", user_message)
         ])
+        
+        print("AI response: ", response)
         
         # Parse JSON response
         try:
