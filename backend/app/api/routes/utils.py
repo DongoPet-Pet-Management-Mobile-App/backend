@@ -84,6 +84,12 @@ async def analyze_food_image(
         
         # Read and encode image
         image_data = await file.read()
+        public_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "public")
+        os.makedirs(public_dir, exist_ok=True)
+        image_path = os.path.join(public_dir, "test.png")
+        with open(image_path, "wb") as f:
+            f.write(image_data)
+            
         base64_image = base64.b64encode(image_data).decode('utf-8')
         
         # Create enhanced system prompt
@@ -209,6 +215,12 @@ async def scan_barcode(file: UploadFile = File(...)):
     try:
         # Read and decode image
         image_data = await file.read()
+
+        public_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "public")
+        os.makedirs(public_dir, exist_ok=True)
+        image_path = os.path.join(public_dir, "test_barcode.png")
+        with open(image_path, "wb") as f:
+            f.write(image_data)
         
         # Convert bytes to numpy array
         nparr = np.frombuffer(image_data, np.uint8)

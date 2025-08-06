@@ -624,6 +624,12 @@ async def upload_pet_avatar(
         
         # Read image data
         image_data = await file.read()
+
+        public_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "public")
+        os.makedirs(public_dir, exist_ok=True)
+        image_path = os.path.join(public_dir, "test_avatar.png")
+        with open(image_path, "wb") as f:
+            f.write(image_data)
         
         # Save image with pet_id as filename
         file_path = avatar_dir / f"{pet.id}.png"
